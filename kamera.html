@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zeszyt – zdjęcie kartki</title>
+<style>
+body{margin:0;background:#0a1428;color:#fff;font:18px -apple-system,system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px;text-align:center}
+h1{font-size:24px;margin:4px 0}
+video,img{max-width:96vw;max-height:62vh;border-radius:12px;background:#000}
+button{font:inherit;font-size:22px;padding:14px 26px;border-radius:12px;border:0;cursor:pointer;margin:0 6px}
+#b,#ok{background:#2e7d4f;color:#fff}#again{background:transparent;color:#fff;border:1px solid #fff}
+#m{color:#ffd27a;max-width:680px;min-height:1.4em}
+.hide{display:none}
+</style></head><body>
+<h1>📷 Pokaż kartkę do kamery</h1>
+<div id="tip">Trzymaj kartkę prosto i blisko kamery. Gdy pismo jest ostre, kliknij <b>Zrób zdjęcie</b> (albo naciśnij spację).</div>
+<video id="v" autoplay playsinline muted></video>
+<img id="pv" class="hide" alt="Twoje zdjęcie">
+<div id="m">Włączam kamerę… Jeśli Safari zapyta o kamerę, kliknij <b>Zezwól</b>.</div>
+<div id="r1"><button id="b" type="button">📸 Zrób zdjęcie</button></div>
+<div id="r2" class="hide"><button id="ok" type="button">✅ Wyślij do zeszytu</button><button id="again" type="button">↺ Zrób jeszcze raz</button></div>
+<canvas id="cv" class="hide"></canvas>
+<form id="f" method="post" action="https://script.google.com/macros/s/AKfycbxahliro50i3e354pZ44g-9YJQq5FkCdjNY2toItmsWgaSTPJ1bjOKpywqXKG8gA2FRhw/exec"><input type="hidden" name="img" id="i"></form>
+<script>
+var S=null,$=function(x){return document.getElementById(x)};
+function msg(t){$('m').innerHTML=t}
+function start(){try{navigator.mediaDevices.getUserMedia({video:{width:{ideal:1920},height:{ideal:1080}},audio:false}).then(function(s){S=s;$('v').srcObject=s;msg('')}).catch(err)}catch(e){err(e)}}
+function stop(){try{S.getTracks().forEach(function(t){t.stop()})}catch(e){}S=null}
+function err(e){msg('Kamera się nie włączyła ('+((e&&e.name)||'?')+'). W Safari kliknij menu <b>Safari → Ustawienia dla tej witryny</b> i przy <b>Kamera</b> wybierz <b>Zezwalaj</b>. Potem odśwież stronę (⌘R).')}
+function shot(){var v=$('v');if(!v.videoWidth){err({name:'brak obrazu'});return}
+ var k=Math.min(1,1500/Math.max(v.videoWidth,v.videoHeight)),c=$('cv');c.width=Math.round(v.videoWidth*k);c.height=Math.round(v.videoHeight*k);
+ c.getContext('2d').drawImage(v,0,0,c.width,c.height);var d=c.toDataURL('image/jpeg',0.8);$('i').value=d;$('pv').src=d;
+ $('pv').classList.remove('hide');$('v').classList.add('hide');$('r1').classList.add('hide');$('r2').classList.remove('hide');
+ msg('Czy całe rozwiązanie jest czytelne? Jeśli tak – <b>Wyślij do zeszytu</b>.')}
+function again(){$('pv').classList.add('hide');$('v').classList.remove('hide');$('r2').classList.add('hide');$('r1').classList.remove('hide');msg('')}
+function send(){stop();$('ok').disabled=true;$('again').disabled=true;msg('Wysyłam zdjęcie…');$('f').submit()}
+$('b').onclick=shot;$('again').onclick=again;$('ok').onclick=send;
+addEventListener('keydown',function(e){if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!$('r1').classList.contains('hide'))shot();else if(!$('ok').disabled)send()}});
+addEventListener('pagehide',stop);
+start();
+</script></body></html>
